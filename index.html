@@ -204,7 +204,7 @@
   }
   .action-btn, .question-item {
     opacity: 0;
-    animation: fadeSlideUp 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeSlideUp 650ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   /* ── Action List + Action Button ── */
@@ -1102,7 +1102,7 @@ function renderIntent() {
     const btn = document.createElement('button');
     btn.className = 'action-btn';
     btn.setAttribute('data-flow', flow.id);
-    btn.style.animationDelay = `${60 + i * 60}ms`;
+    btn.style.animationDelay = `${80 + i * 90}ms`;
     btn.innerHTML = `
       <div class="action-btn-icon">${ICONS[flow.icon]}</div>
       <div class="action-btn-text">
@@ -1134,7 +1134,7 @@ function renderSubIntent(flow) {
     const btn = document.createElement('button');
     btn.className = 'question-item';
     btn.setAttribute('data-sub', s.id);
-    btn.style.animationDelay = `${60 + idx * 60}ms`;
+    btn.style.animationDelay = `${80 + idx * 90}ms`;
     btn.innerHTML = `
       <div class="q-num">${idx + 1}</div>
       <div class="q-label">${s.label}</div>
