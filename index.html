@@ -197,6 +197,16 @@
     letter-spacing: 0.1px;
   }
 
+  /* ── Staggered fade-in ── */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .action-btn, .question-item {
+    opacity: 0;
+    animation: fadeSlideUp 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
   /* ── Action List + Action Button ── */
   .action-list {
     display: flex;
@@ -1088,10 +1098,11 @@ const els = {
 // ============================================================================
 function renderIntent() {
   els.intentList.innerHTML = '';
-  Object.values(FLOWS).forEach(flow => {
+  Object.values(FLOWS).forEach((flow, i) => {
     const btn = document.createElement('button');
     btn.className = 'action-btn';
     btn.setAttribute('data-flow', flow.id);
+    btn.style.animationDelay = `${i * 90}ms`;
     btn.innerHTML = `
       <div class="action-btn-icon">${ICONS[flow.icon]}</div>
       <div class="action-btn-text">
@@ -1123,6 +1134,7 @@ function renderSubIntent(flow) {
     const btn = document.createElement('button');
     btn.className = 'question-item';
     btn.setAttribute('data-sub', s.id);
+    btn.style.animationDelay = `${idx * 80}ms`;
     btn.innerHTML = `
       <div class="q-num">${idx + 1}</div>
       <div class="q-label">${s.label}</div>
