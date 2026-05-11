@@ -1,938 +1,1401 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Migros Bank – Vorsorge Wizard (Klickdummy)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migros Bank – Vorsorge Wizard</title>
+<style>
+  @font-face {
+    font-family: 'Migrosbank Kievit';
+    src: url('assets/fonts/MigrosbankKievit-Book.woff2') format('woff2');
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Migrosbank Kievit';
+    src: url('assets/fonts/MigrosbankKievit-Bold.woff2') format('woff2');
+    font-weight: 700;
+  }
 
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  /* ── Migros Bank Design Tokens ── */
+  :root {
+    --primary-default:    #144b3c;
+    --primary-ondefault:  #ffffff;
+    --primary-subtle1:    #eff2f1;
+    --primary-subtle3:    #c4d2ce;
+    --primary-subtle4:    #92a59e;
+    --primary-subtle5:    #5a8a7e;
+    --accent-magenta:     #d9007e;
+    --neutral-bold3:      #333333;
+    --neutral-bold5:      #000000;
+    --error-default:      #c70517;
 
-  <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; height: 100%; }
-    body {
-      font-family: "Migrosbank Kievit", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background-color: #d6dcd9;
-    }
-    button { font-family: inherit; }
-    input { font-family: inherit; }
+    --spacing-xs:  8px;
+    --spacing-s:   16px;
+    --spacing-m:   24px;
 
-    @keyframes mb-fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes mb-slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .mb-fade-in { animation: mb-fadeIn 240ms ease-out; }
-    .mb-slide-up { animation: mb-slideUp 280ms cubic-bezier(0.4, 0, 0.2, 1); }
+    --radius-s:  8px;
+    --radius-m:  12px;
+    --radius-l:  16px;
 
-    button:focus-visible {
-      outline: 2px solid #d9007e;
-      outline-offset: 2px;
-    }
-    input:focus-visible {
-      outline: 2px solid #144b3c;
-      outline-offset: 0;
-    }
+    --font-family: 'Migrosbank Kievit', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
 
-    input[type="range"] {
-      -webkit-appearance: none;
-      appearance: none;
-      height: 4px;
-      background: #c4d2ce;
-      border-radius: 4px;
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #144b3c;
-      cursor: pointer;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-    input[type="range"]::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #144b3c;
-      cursor: pointer;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-  </style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+
+  body {
+    font-family: var(--font-family);
+    background: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  /* ── App Shell ── */
+  .shell {
+    width: min(100%, 600px);
+    min-height: 100vh;
+    background: var(--primary-ondefault);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── Page Header (übernommen aus Styleguide) ── */
+  .page-header {
+    height: 50px;
+    background: var(--primary-ondefault);
+    border-bottom: 1px solid var(--primary-subtle3);
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-s);
+    flex-shrink: 0;
+    z-index: 9;
+  }
+  .mb-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mb-logo-mark {
+    width: auto;
+    height: 22px;
+    display: block;
+    object-fit: contain;
+    cursor: pointer;
+  }
+  .mb-logo-fallback {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-default);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+  }
+  .mb-logo-fallback::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    background: #f60;
+    border-radius: 3px;
+    display: block;
+  }
+  .mb-back-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--primary-default);
+    font-family: var(--font-family);
+    font-size: 16px;
+    font-weight: 400;
+    padding: 4px 0;
+  }
+  .mb-back-btn.visible { display: flex; }
+  .page-header-menu {
+    width: 24px; height: 24px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+    cursor: pointer;
+    background: none; border: none; padding: 0;
+  }
+  .page-header-menu span {
+    display: block; width: 18px; height: 2px;
+    background: var(--neutral-bold3); border-radius: 1px;
+  }
+
+  /* ── Body (view host) ── */
+  .body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--primary-ondefault);
+  }
+
+  /* ── Views ── */
+  .view {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .25s;
+    pointer-events: none;
+    will-change: transform;
+  }
+  .view::-webkit-scrollbar { width: 0; }
+  .view.active { transform: translateX(0); opacity: 1; pointer-events: auto; }
+  .view.exit-left { transform: translateX(-40px); opacity: 0; pointer-events: none; }
+
+  /* ── Section Heading ── */
+  .section-heading {
+    padding: 20px var(--spacing-s) 4px;
+  }
+  .section-heading .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--primary-default);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-heading h1 {
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--primary-default);
+    line-height: 1.31;
+    letter-spacing: -0.26px;
+  }
+  .section-heading p {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--primary-default);
+    line-height: 1.375;
+    letter-spacing: 0.08px;
+    margin-top: 8px;
+  }
+
+  /* ── Breadcrumb Tag ── */
+  .breadcrumb-tag {
+    display: inline-flex;
+    width: max-content;
+    align-items: center;
+    margin: 16px var(--spacing-s) 0;
+    padding: 4px 10px;
+    background: rgba(20,75,60,0.08);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--primary-default);
+    letter-spacing: 0.1px;
+  }
+
+  /* ── Action List + Action Button ── */
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px var(--spacing-s) 24px;
+  }
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--primary-ondefault);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    text-align: left;
+    transition: all .18s cubic-bezier(.4,0,.2,1);
+    width: 100%;
+    font-family: var(--font-family);
+  }
+  .action-btn:hover, .action-btn:active, .action-btn:focus-visible {
+    border-color: var(--primary-default);
+    background: var(--primary-subtle1);
+    outline: none;
+  }
+  .action-btn-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--primary-subtle1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .action-btn-icon svg { width: 22px; height: 22px; color: var(--primary-default); }
+  .action-btn-text { flex: 1; min-width: 0; }
+  .action-btn-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--primary-default);
+    line-height: 1.4;
+    letter-spacing: 0.08px;
+  }
+  .action-btn-sub {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--primary-subtle4);
+    line-height: 1.4;
+    letter-spacing: 0.07px;
+    margin-top: 2px;
+  }
+  .action-btn-chevron { flex-shrink: 0; color: var(--primary-subtle4); }
+  .action-btn:hover .action-btn-chevron,
+  .action-btn:focus-visible .action-btn-chevron { color: var(--primary-default); }
+
+  /* ── Question List + Item (Sub-Intent) ── */
+  .question-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px var(--spacing-s) 16px;
+  }
+  .question-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px var(--spacing-s);
+    background: var(--primary-ondefault);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-family);
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--primary-default);
+    line-height: 1.45;
+    letter-spacing: 0.07px;
+    transition: all .18s cubic-bezier(.4,0,.2,1);
+    width: 100%;
+  }
+  .question-item:hover, .question-item:focus-visible {
+    background: var(--primary-subtle1);
+    border-color: var(--primary-default);
+    outline: none;
+  }
+  .q-num {
+    width: 26px; height: 26px; flex-shrink: 0;
+    background: rgba(20,75,60,0.08);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500; color: var(--primary-default);
+  }
+  .q-label { flex: 1; }
+  .q-arr { flex-shrink: 0; color: var(--primary-subtle4); }
+  .question-item:hover .q-arr,
+  .question-item:focus-visible .q-arr { color: var(--primary-default); }
+
+  /* ── Persona-Card (Sub-Intent-Screen) ── */
+  .persona-card {
+    margin: 16px var(--spacing-s) 8px;
+    background: var(--primary-subtle1);
+    border-radius: var(--radius-l);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .persona-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: var(--primary-ondefault);
+    border-radius: var(--radius-s);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary-default);
+  }
+  .persona-icon svg { width: 20px; height: 20px; }
+  .persona-body { flex: 1; min-width: 0; }
+  .persona-eyebrow {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--primary-default);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .persona-text {
+    font-size: 13px;
+    color: var(--primary-default);
+    line-height: 1.45;
+  }
+
+  /* ── Answer Card (Screen 3) ── */
+  .answer-wrap { padding: 0 var(--spacing-s) 24px; }
+  .answer-card {
+    background: var(--primary-ondefault);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-l);
+    padding: 20px;
+    margin-top: 8px;
+  }
+  .answer-intro {
+    font-size: 16px;
+    font-style: italic;
+    color: var(--primary-default);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+  }
+  .bullet-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .bullet-tick {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(20,75,60,0.08);
+    color: var(--primary-default);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+  .bullet-text {
+    font-size: 14.5px;
+    color: var(--primary-default);
+    line-height: 1.5;
+  }
+
+  /* ── Guide Link (innerhalb Card) ── */
+  .guide-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--primary-subtle1);
+    border: none;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--primary-default);
+    text-align: left;
+    width: 100%;
+    gap: 8px;
+    transition: background .15s;
+  }
+  .guide-link:hover { background: var(--primary-subtle3); }
+  .guide-link svg { flex-shrink: 0; }
+
+  /* ── CTAs ── */
+  .cta-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .cta {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.08px;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .cta-primary {
+    background: var(--primary-default);
+    color: var(--primary-ondefault);
+    border: 1.5px solid var(--primary-default);
+  }
+  .cta-primary:hover { background: #0d3228; border-color: #0d3228; }
+  .cta-secondary {
+    background: transparent;
+    color: var(--primary-default);
+    border: 1.5px solid var(--primary-default);
+  }
+  .cta-secondary:hover { background: var(--primary-subtle1); }
+
+  /* ── Trust Bar ── */
+  .trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--primary-subtle3);
+    font-size: 12px;
+    color: var(--primary-subtle5);
+  }
+  .trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .trust-item svg {
+    width: 13px;
+    height: 13px;
+    color: var(--primary-default);
+  }
+
+  /* ── Modal ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 50, 40, 0.55);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn .2s ease-out;
+  }
+  .modal-backdrop.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    background: var(--primary-ondefault);
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp .28s cubic-bezier(.4, 0, .2, 1);
+  }
+  @media (min-width: 600px) {
+    .modal-backdrop { align-items: center; }
+    .modal { border-radius: 24px; max-height: 80vh; margin: 24px; }
+  }
+
+  .modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--primary-subtle3);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .modal-title-eyebrow {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--primary-default);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--primary-default);
+    line-height: 1.3;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    color: var(--neutral-bold3);
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--primary-subtle1); }
+
+  .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .modal-body p { font-size: 14.5px; color: var(--primary-default); line-height: 1.5; margin-bottom: 16px; }
+
+  .modal-footer-note {
+    padding: 10px 20px;
+    background: var(--primary-subtle1);
+    border-top: 1px solid var(--primary-subtle3);
+    font-size: 11px;
+    color: var(--primary-subtle5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Form fields */
+  .field { margin-bottom: 12px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary-default);
+    margin-bottom: 6px;
+    letter-spacing: 0.1px;
+  }
+  .field-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--primary-subtle1);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-s);
+    font-family: var(--font-family);
+    font-size: 14.5px;
+    color: var(--primary-default);
+    outline: none;
+    transition: border-color .15s, background .15s;
+  }
+  .field-input:focus {
+    border-color: var(--primary-default);
+    background: var(--primary-ondefault);
+  }
+  .field-input::placeholder { color: var(--primary-subtle4); }
+
+  .channel-row {
+    display: flex;
+    gap: 8px;
+  }
+  .channel-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: var(--primary-subtle1);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-size: 13px;
+    color: var(--primary-default);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: all .15s;
+  }
+  .channel-btn.active {
+    background: var(--primary-ondefault);
+    border-color: var(--primary-default);
+  }
+  .channel-btn svg { width: 18px; height: 18px; }
+
+  .calc-card {
+    background: var(--primary-subtle1);
+    border-radius: var(--radius-l);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .calc-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary-default);
+    margin-bottom: 4px;
+  }
+  .calc-value {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--primary-default);
+    margin-bottom: 12px;
+  }
+  .calc-range {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--primary-subtle3);
+    border-radius: 4px;
+    outline: none;
+  }
+  .calc-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--primary-default);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .calc-range::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--primary-default);
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .calc-bounds {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--primary-subtle5);
+    margin-top: 4px;
+  }
+  .calc-result {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--primary-subtle3);
+  }
+  .calc-result-label { font-size: 12px; color: var(--primary-default); margin-bottom: 4px; }
+  .calc-result-value {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--primary-default);
+  }
+
+  .filiale-list { display: flex; flex-direction: column; gap: 8px; }
+  .filiale-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px;
+    background: var(--primary-subtle1);
+    border: 1.5px solid var(--primary-subtle3);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-family: var(--font-family);
+    text-align: left;
+    transition: all .15s;
+  }
+  .filiale-item:hover { border-color: var(--primary-default); }
+  .filiale-name { font-size: 14px; font-weight: 500; color: var(--primary-default); }
+  .filiale-slot { font-size: 12px; color: var(--primary-subtle5); margin-top: 2px; }
+
+  .success-state {
+    text-align: center;
+    padding: 24px 0;
+  }
+  .success-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--primary-subtle1);
+    color: var(--primary-default);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .success-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--primary-default);
+    margin-bottom: 4px;
+  }
+  .success-sub {
+    font-size: 14px;
+    color: var(--primary-default);
+  }
+
+  /* ── Debug Badge ── */
+  .debug-badge {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    background: rgba(20,75,60,0.95);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 50;
+    max-width: 240px;
+  }
+  .debug-badge .debug-title { opacity: .7; margin-bottom: 4px; }
+  .debug-badge .debug-restart {
+    margin-top: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  button:focus-visible { outline: 2px solid var(--accent-magenta); outline-offset: 2px; }
+</style>
 </head>
 <body>
-  <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect } = React;
+<div class="shell">
 
-    // ========================================================================
-    // INLINE-ICONS
-    // ========================================================================
-    const Icon = ({ children, size = 20, strokeWidth = 2, style = {} }) => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={style}
-        aria-hidden="true"
-      >
-        {children}
-      </svg>
-    );
+  <!-- Page Header (übernommen aus Styleguide) -->
+  <div class="page-header">
+    <button class="mb-back-btn" id="backBtn" aria-label="Zurück">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div id="pageHeaderLogo" class="mb-logo">
+      <img class="mb-logo-mark" src="assets/migo-logo.png" alt="Migros Bank" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="mb-logo-fallback" style="display:none;">Migros Bank</div>
+    </div>
+    <button id="pageHeaderMenu" class="page-header-menu" aria-label="Menü">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 
-    const ArrowLeft = (p) => <Icon {...p}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></Icon>;
-    const ArrowRight = (p) => <Icon {...p}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></Icon>;
-    const X = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></Icon>;
-    const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12" /></Icon>;
-    const Info = (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></Icon>;
-    const Sprout = (p) => <Icon {...p}><path d="M7 20h10" /><path d="M10 20c5.5-2.5.8-6.4 3-10" /><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z" /><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z" /></Icon>;
-    const TrendingUp = (p) => <Icon {...p}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></Icon>;
-    const Wallet = (p) => <Icon {...p}><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" /></Icon>;
-    const Phone = (p) => <Icon {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></Icon>;
-    const MapPin = (p) => <Icon {...p}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></Icon>;
-    const Video = (p) => <Icon {...p}><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></Icon>;
-    const Calculator = (p) => <Icon {...p}><rect x="4" y="2" width="16" height="20" rx="2" /><line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="10" x2="10" y2="10" /><line x1="12" y1="10" x2="14" y2="10" /><line x1="16" y1="10" x2="16" y2="10" /><line x1="8" y1="14" x2="10" y2="14" /><line x1="12" y1="14" x2="14" y2="14" /><line x1="16" y1="14" x2="16" y2="14" /><line x1="8" y1="18" x2="10" y2="18" /><line x1="12" y1="18" x2="14" y2="18" /><line x1="16" y1="18" x2="16" y2="18" /></Icon>;
+  <!-- Body -->
+  <div class="body">
 
-    const T = {
-      primary: '#144b3c',
-      primaryOn: '#ffffff',
-      primaryBold2: '#0d3228',
-      primarySubtle1: '#eff2f1',
-      primarySubtle2: '#dbe5e1',
-      primarySubtle3: '#c4d2ce',
-      accentMagenta: '#d9007e',
-      accentYellow: '#ffc940',
-      neutral: '#333333',
-      neutralSubtle3: '#e0e0e0',
-      error: '#c70517',
-    };
-    const FONT_STACK = '"Migrosbank Kievit", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif';
+    <!-- VIEW 1: Intent-Erkennung -->
+    <div class="view active" id="v1">
+      <div class="section-heading">
+        <div class="eyebrow">Vorsorge</div>
+        <h1>Was beschäftigt Sie gerade beim Thema Vorsorge?</h1>
+        <p>Wählen Sie, was am besten zu Ihrer Situation passt – wir zeigen Ihnen die passenden nächsten Schritte.</p>
+      </div>
 
-    const trackEvent = (name, payload = {}) => {
-      console.log(`[track] ${name}`, payload);
-    };
+      <div class="action-list" id="intentList">
+        <!-- via JS -->
+      </div>
+    </div>
 
-    const FLOWS = {
-      starter: {
-        id: 'starter',
-        label: 'Ich will 3a starten',
-        sublabel: 'Erste Schritte, Steuervorteil verstehen',
-        icon: Sprout,
-        persona: 'Du hast noch kein 3a-Konto. Du hast Fragen und suchst gezielte Antworten. Job-to-be-Done: «Sag mir, ob ich jetzt starten soll – und wie ich das richtig anpacke.»',
-        subIntents: [
-          {
-            id: 's1',
-            label: 'Steuervorteil ermitteln',
-            intro: 'Unser Steuerrechner zeigt dir, wieviel du konkret sparst.',
-            bullets: [
-              'Maximalbetrag 2026: CHF 7\u2019258 für Erwerbstätige mit Pensionskasse.',
-              'Steuerersparnis je nach Einkommen und Kanton: typisch 20–40% der Einzahlung.',
-              'Einzahlung muss bis 31. Dezember erfolgen, damit sie für dieses Steuerjahr zählt.',
-              'Auch Teilzahlungen über das Jahr sind möglich – per Dauerauftrag bequem.',
-            ],
-            guideLink: 'Die 10 wichtigsten Tipps zur Säule 3a',
-            primaryCta: { label: 'Zum Steuerrechner', icon: Calculator, action: 'calc' },
-            secondaryCta: { label: 'Lieber beraten lassen', action: 'beratung' },
-          },
-          {
-            id: 's2',
-            label: 'Verstehen wie 3a funktioniert',
-            intro: 'Das Wichtigste in vier Punkten – verständlich erklärt.',
-            bullets: [
-              'Säule 3a ist die freiwillige, steuerbegünstigte private Vorsorge.',
-              'Das Geld ist gebunden bis frühestens 5 Jahre vor ordentlichem AHV-Alter.',
-              'Vorzeitiger Bezug nur bei Wohneigentum, Selbstständigkeit, Auswanderung möglich.',
-              'Wahl zwischen Sparkonto (sicher) und Wertschriftenlösung (Renditechance).',
-            ],
-            guideLink: 'Altersvorsorge in der Schweiz: 3-Säulen-System einfach erklärt',
-            primaryCta: { label: 'Welches Produkt passt zu mir?', action: 'beratung' },
-            secondaryCta: { label: 'Lieber beraten lassen', action: 'beratung' },
-          },
-          {
-            id: 's3',
-            label: 'Anlagemöglichkeiten kennenlernen',
-            intro: 'Wir erklären dir den Unterschied – und welches Produkt zu deiner Situation passt.',
-            bullets: [
-              'Sparkonto 3a: Garantierter Kapitalerhalt, aktuell tiefe Zinsen.',
-              'Fondslösung 3a: Höhere Renditechance, dafür Marktschwankungen.',
-              'Aktienanteil flexibel wählbar – von vorsichtig bis renditeorientiert.',
-              'Migros Bank Fonds 3a: ohne Ausgabeaufschlag, transparente Kosten.',
-            ],
-            guideLink: 'Sparkonto vs. Fonds vergleichen',
-            primaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
-            secondaryCta: { label: 'Sparkonto vs. Fonds', action: 'beratung' },
-          },
+    <!-- VIEW 2: Sub-Intent -->
+    <div class="view" id="v2">
+      <div id="v2breadcrumb" class="breadcrumb-tag"></div>
+      <div class="persona-card" id="personaCard"></div>
+      <div class="section-heading" style="padding-top:8px;">
+        <h1 id="v2title" style="font-size:22px;">Was interessiert Sie am meisten?</h1>
+        <p id="v2desc">Wir zeigen Ihnen die wichtigsten Antworten und nächsten Schritte.</p>
+      </div>
+      <div class="question-list" id="qlist"></div>
+    </div>
+
+    <!-- VIEW 3: Antwort -->
+    <div class="view" id="v3">
+      <div id="v3breadcrumb" class="breadcrumb-tag"></div>
+      <div class="section-heading" style="padding-top:12px;">
+        <h1 id="v3title" style="font-size:22px;"></h1>
+      </div>
+      <div class="answer-wrap">
+        <div class="answer-card">
+          <p class="answer-intro" id="v3intro"></p>
+          <ul class="bullet-list" id="v3bullets"></ul>
+          <button class="guide-link" id="v3guide" type="button">
+            <span id="v3guideLabel"></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+
+        <div class="cta-stack">
+          <button class="cta cta-primary" id="ctaPrimary"></button>
+          <button class="cta cta-secondary" id="ctaSecondary"></button>
+        </div>
+
+        <div class="trust-bar">
+          <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Erstgespräch kostenlos</span>
+          <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Unverbindlich</span>
+          <span class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> FINMA-reguliert</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title-eyebrow">Migros Bank</div>
+        <div class="modal-title" id="modalTitle"></div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Schliessen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer-note">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Klickdummy – keine echten Daten werden übermittelt.
+    </div>
+  </div>
+</div>
+
+<!-- UX Debug Badge -->
+<div class="debug-badge" id="debugBadge">
+  <div class="debug-title">UX-DEBUG</div>
+  <div>Screen: <strong id="dbgScreen">v1</strong></div>
+  <div>Flow: <span id="dbgFlow">—</span></div>
+  <div>Sub-Intent: <span id="dbgSub">—</span></div>
+  <button class="debug-restart" id="dbgRestart" type="button">Wizard neu starten</button>
+</div>
+
+<script>
+// ============================================================================
+// Tracking
+// ============================================================================
+const trackEvent = (name, payload = {}) => {
+  console.log(`[track] ${name}`, payload);
+};
+
+// ============================================================================
+// Icons (inline SVG-Strings)
+// ============================================================================
+const ICONS = {
+  sprout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>',
+  trending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+  chevron: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  calc: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>',
+  video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+};
+
+// ============================================================================
+// Flow-Daten (aus den Original-Bildern 1, 2, 3)
+// ============================================================================
+const FLOWS = {
+  starter: {
+    id: 'starter',
+    label: 'Ich will 3a starten',
+    sublabel: 'Erste Schritte, Steuervorteil verstehen',
+    icon: 'sprout',
+    persona: 'Sie haben noch kein 3a-Konto. Sie haben Fragen und suchen gezielte Antworten. „Sagen Sie mir, ob ich jetzt starten soll – und wie ich das richtig anpacke."',
+    subIntents: [
+      {
+        id: 's1',
+        label: 'Steuervorteil ermitteln',
+        intro: 'Unser Steuerrechner zeigt Ihnen, wieviel Sie konkret sparen.',
+        bullets: [
+          'Maximalbetrag 2026: CHF 7\u2019258 für Erwerbstätige mit Pensionskasse.',
+          'Steuerersparnis je nach Einkommen und Kanton: typisch 20–40% der Einzahlung.',
+          'Einzahlung muss bis 31. Dezember erfolgen, damit sie für dieses Steuerjahr zählt.',
+          'Auch Teilzahlungen über das Jahr sind möglich – per Dauerauftrag bequem.',
         ],
+        guideLink: 'Die 10 wichtigsten Tipps zur Säule 3a',
+        primaryCta: { label: 'Zum Steuerrechner', icon: 'calc', action: 'calc' },
+        secondaryCta: { label: 'Lieber beraten lassen', action: 'beratung' },
       },
-      optimizer: {
-        id: 'optimizer',
-        label: 'Ich will mehr rausholen',
-        sublabel: 'Bestehendes 3a optimieren, Lücken schliessen',
-        icon: TrendingUp,
-        persona: 'Du hast bereits ein 3a-Konto. Du vermutest, dass mehr drin liegt. Job-to-be-Done: «Zeig mir, was ich noch nicht kannte – und inspiriere mich.»',
-        subIntents: [
-          {
-            id: 'o1',
-            label: 'Investieren statt sparen',
-            intro: 'Bei langem Anlagehorizont historisch im Vorteil.',
-            bullets: [
-              'Bei Anlagehorizont über 10 Jahren historisch Renditevorteil ggü. Sparkonto.',
-              'Wechsel von Sparkonto zu Fondslösung jederzeit möglich – ohne Steuerfolgen.',
-              'Anteil Aktien individuell wählbar (z.B. 25%, 45%, 75%, 95%).',
-              'Auch Teilumschichtung möglich, wenn du Schritt für Schritt einsteigen willst.',
-            ],
-            guideLink: 'Wann lohnt sich der Wechsel zur Fondslösung?',
-            primaryCta: { label: 'Fondslösung 3a entdecken', action: 'beratung' },
-            secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'o2',
-            label: 'Mit mehreren Konten Steuern sparen',
-            intro: 'Gestaffelter Bezug bricht die Steuerprogression.',
-            bullets: [
-              'Mehrere 3a-Konten erlauben gestaffelten Bezug über mehrere Jahre.',
-              'Spart oft mehrere tausend Franken Steuern beim Bezug.',
-              'Empfehlung: ab Guthaben von ca. CHF 50\u2019000 ein zweites Konto eröffnen.',
-              'Maximal 5 Konten sinnvoll – mehr bringt steuerlich kaum Vorteile.',
-            ],
-            guideLink: 'Steuern sparen mit gestaffeltem 3a-Bezug',
-            primaryCta: { label: 'Zweites 3a-Konto eröffnen', action: 'beratung' },
-            secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'o3',
-            label: '3a-Lücken nachträglich schliessen',
-            intro: 'Seit 2025 möglich: Einkauf in vergangene Beitragsjahre.',
-            bullets: [
-              'Bis zu 10 Jahre rückwirkend Lücken-Einzahlungen möglich.',
-              'Voraussetzung: in den fraglichen Jahren erwerbstätig mit AHV-Pflicht.',
-              'Lücken-Einzahlungen ebenfalls voll steuerlich abzugsfähig.',
-              'Möglich erst, wenn das laufende Jahr bereits maximal eingezahlt ist.',
-            ],
-            guideLink: 'Rückwirkende 3a-Einkäufe: Was du wissen musst',
-            primaryCta: { label: 'Nachzahlung beantragen', action: 'beratung' },
-            secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'o4',
-            label: 'Mehr einzahlen – aber wie?',
-            intro: 'Maximalbetrag voll ausschöpfen – planbar gemacht.',
-            bullets: [
-              'Maximalbetrag 2026 mit Pensionskasse: CHF 7\u2019258.',
-              'Ohne Pensionskasse: bis 20% des Erwerbseinkommens, max. CHF 36\u2019288.',
-              'Dauerauftrag (z.B. CHF 605/Monat) verteilt die Belastung übers Jahr.',
-              'Ergänzend: Lücken aus Vorjahren schliessen.',
-            ],
-            guideLink: 'Wie du dein 3a-Maximum jedes Jahr ausschöpfst',
-            primaryCta: { label: 'Budgetrechner starten', icon: Calculator, action: 'calc' },
-            secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
-          },
+      {
+        id: 's2',
+        label: 'Verstehen wie 3a funktioniert',
+        intro: 'Das Wichtigste in vier Punkten – verständlich erklärt.',
+        bullets: [
+          'Säule 3a ist die freiwillige, steuerbegünstigte private Vorsorge.',
+          'Das Geld ist gebunden bis frühestens 5 Jahre vor ordentlichem AHV-Alter.',
+          'Vorzeitiger Bezug nur bei Wohneigentum, Selbstständigkeit, Auswanderung möglich.',
+          'Wahl zwischen Sparkonto (sicher) und Wertschriftenlösung (Renditechance).',
         ],
+        guideLink: 'Altersvorsorge in der Schweiz: 3-Säulen-System einfach erklärt',
+        primaryCta: { label: 'Welches Produkt passt zu mir?', action: 'beratung' },
+        secondaryCta: { label: 'Lieber beraten lassen', action: 'beratung' },
       },
-      bezug: {
-        id: 'bezug',
-        label: 'Ich denke ans Beziehen',
-        sublabel: 'Auszahlung planen, Steuern sparen',
-        icon: Wallet,
-        persona: 'Du hast ein oder mehrere 3a-Konten. Der Bezug rückt näher. Job-to-be-Done: «Zeig mir, was ich jetzt wissen und tun muss, damit ich keinen Fehler mache.»',
-        subIntents: [
-          {
-            id: 'b1',
-            label: 'Wann und wie kann ich beziehen?',
-            intro: 'Das Erstgespräch ist kostenlos.',
-            bullets: [
-              'Frühester ordentlicher Bezug: 5 Jahre vor AHV-Alter.',
-              'Spätester Bezug bei Erwerbstätigkeit: bis 5 Jahre nach AHV-Alter.',
-              'Bezug pro Konto immer als Ganzes – keine Teilauszahlung pro Konto.',
-              'Steuern werden separat zum übrigen Einkommen, zu reduziertem Satz erhoben.',
-            ],
-            guideLink: 'Säule 3a beziehen: Der vollständige Leitfaden',
-            primaryCta: { label: 'Finanzplanung entdecken', action: 'beratung' },
-            secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'b2',
-            label: 'Wie spare ich Steuern beim Bezug?',
-            intro: 'Mit Finanzplanung Advanced – Erstgespräch kostenlos.',
-            bullets: [
-              'Bezug auf mehrere Steuerjahre staffeln – jedes Jahr ein Konto.',
-              'Kantonsunterschiede beachten: Wohnsitzwechsel kann sich lohnen.',
-              'Bezug nicht im selben Jahr wie PK-Kapitalbezug – Progression sonst identisch.',
-              'Für Verheiratete: Bezüge beider Ehepartner werden zusammengerechnet.',
-            ],
-            guideLink: 'Steueroptimierter 3a-Bezug',
-            primaryCta: { label: 'Finanzplanung Advanced entdecken', action: 'beratung' },
-            secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'b3',
-            label: 'Wann kann ich vorzeitig beziehen?',
-            intro: 'Frühpensionierung besprechen – Erstgespräch kostenlos.',
-            bullets: [
-              'Wohneigentum (selbstgenutzt): Kauf, Hypothek-Amortisation, wertvermehrender Umbau.',
-              'Aufnahme einer selbstständigen Erwerbstätigkeit (im ersten Jahr).',
-              'Definitive Auswanderung aus der Schweiz.',
-              'Bezug einer vollen IV-Rente.',
-            ],
-            guideLink: 'Vorzeitiger 3a-Bezug: Gründe und Voraussetzungen',
-            primaryCta: { label: 'Frühpensionierung besprechen', action: 'beratung' },
-            secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
-          },
-          {
-            id: 'b4',
-            label: 'Wie schütze ich mein Guthaben vor dem Bezug?',
-            intro: 'Persönliche Finanzplanung – Erstgespräch kostenlos.',
-            bullets: [
-              'Mit näherrückendem Bezug Aktienquote schrittweise reduzieren (Glide-Path).',
-              'Risiko und Anlagehorizont jährlich überprüfen.',
-              'Letzte 2–3 Jahre vor Bezug: Wechsel auf Sparkonto erwägen.',
-              'Persönliche Finanzplanung gibt dir den optimalen Übergang vor.',
-            ],
-            guideLink: 'Glide-Path: Wie du dein 3a vor dem Bezug absicherst',
-            primaryCta: { label: 'Persönliche Finanzplanung', action: 'beratung' },
-            secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
-          },
+      {
+        id: 's3',
+        label: 'Anlagemöglichkeiten kennenlernen',
+        intro: 'Wir erklären den Unterschied – und welches Produkt zu Ihrer Situation passt.',
+        bullets: [
+          'Sparkonto 3a: Garantierter Kapitalerhalt, aktuell tiefe Zinsen.',
+          'Fondslösung 3a: Höhere Renditechance, dafür Marktschwankungen.',
+          'Aktienanteil flexibel wählbar – von vorsichtig bis renditeorientiert.',
+          'Migros Bank Fonds 3a: ohne Ausgabeaufschlag, transparente Kosten.',
         ],
+        guideLink: 'Sparkonto vs. Fonds vergleichen',
+        primaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
+        secondaryCta: { label: 'Sparkonto vs. Fonds', action: 'beratung' },
       },
-    };
+    ],
+  },
+  optimizer: {
+    id: 'optimizer',
+    label: 'Ich will mehr rausholen',
+    sublabel: 'Bestehendes 3a optimieren, Lücken schliessen',
+    icon: 'trending',
+    persona: 'Sie haben bereits ein 3a-Konto. Sie vermuten, dass mehr drin liegt. „Zeigen Sie mir, was ich noch nicht kannte – und inspirieren Sie mich."',
+    subIntents: [
+      {
+        id: 'o1',
+        label: 'Investieren statt sparen',
+        intro: 'Bei langem Anlagehorizont historisch im Vorteil.',
+        bullets: [
+          'Bei Anlagehorizont über 10 Jahren historisch Renditevorteil ggü. Sparkonto.',
+          'Wechsel von Sparkonto zu Fondslösung jederzeit möglich – ohne Steuerfolgen.',
+          'Anteil Aktien individuell wählbar (z.B. 25%, 45%, 75%, 95%).',
+          'Auch Teilumschichtung möglich, wenn Sie Schritt für Schritt einsteigen wollen.',
+        ],
+        guideLink: 'Wann lohnt sich der Wechsel zur Fondslösung?',
+        primaryCta: { label: 'Fondslösung 3a entdecken', action: 'beratung' },
+        secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'o2',
+        label: 'Mit mehreren Konten Steuern sparen',
+        intro: 'Gestaffelter Bezug bricht die Steuerprogression.',
+        bullets: [
+          'Mehrere 3a-Konten erlauben gestaffelten Bezug über mehrere Jahre.',
+          'Spart oft mehrere tausend Franken Steuern beim Bezug.',
+          'Empfehlung: ab Guthaben von ca. CHF 50\u2019000 ein zweites Konto eröffnen.',
+          'Maximal 5 Konten sinnvoll – mehr bringt steuerlich kaum Vorteile.',
+        ],
+        guideLink: 'Steuern sparen mit gestaffeltem 3a-Bezug',
+        primaryCta: { label: 'Zweites 3a-Konto eröffnen', action: 'beratung' },
+        secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'o3',
+        label: '3a-Lücken nachträglich schliessen',
+        intro: 'Seit 2025 möglich: Einkauf in vergangene Beitragsjahre.',
+        bullets: [
+          'Bis zu 10 Jahre rückwirkend Lücken-Einzahlungen möglich.',
+          'Voraussetzung: in den fraglichen Jahren erwerbstätig mit AHV-Pflicht.',
+          'Lücken-Einzahlungen ebenfalls voll steuerlich abzugsfähig.',
+          'Möglich erst, wenn das laufende Jahr bereits maximal eingezahlt ist.',
+        ],
+        guideLink: 'Rückwirkende 3a-Einkäufe: Was Sie wissen müssen',
+        primaryCta: { label: 'Nachzahlung beantragen', action: 'beratung' },
+        secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'o4',
+        label: 'Mehr einzahlen – aber wie?',
+        intro: 'Maximalbetrag voll ausschöpfen – planbar gemacht.',
+        bullets: [
+          'Maximalbetrag 2026 mit Pensionskasse: CHF 7\u2019258.',
+          'Ohne Pensionskasse: bis 20% des Erwerbseinkommens, max. CHF 36\u2019288.',
+          'Dauerauftrag (z.B. CHF 605/Monat) verteilt die Belastung übers Jahr.',
+          'Ergänzend: Lücken aus Vorjahren schliessen.',
+        ],
+        guideLink: 'Wie Sie Ihr 3a-Maximum jedes Jahr ausschöpfen',
+        primaryCta: { label: 'Budgetrechner starten', icon: 'calc', action: 'calc' },
+        secondaryCta: { label: 'Beratung vereinbaren', action: 'beratung' },
+      },
+    ],
+  },
+  bezug: {
+    id: 'bezug',
+    label: 'Ich denke ans Beziehen',
+    sublabel: 'Auszahlung planen, Steuern sparen',
+    icon: 'wallet',
+    persona: 'Sie haben ein oder mehrere 3a-Konten. Der Bezug rückt näher. „Zeigen Sie mir, was ich jetzt wissen und tun muss, damit ich keinen Fehler mache."',
+    subIntents: [
+      {
+        id: 'b1',
+        label: 'Wann und wie kann ich beziehen?',
+        intro: 'Das Erstgespräch ist kostenlos.',
+        bullets: [
+          'Frühester ordentlicher Bezug: 5 Jahre vor AHV-Alter.',
+          'Spätester Bezug bei Erwerbstätigkeit: bis 5 Jahre nach AHV-Alter.',
+          'Bezug pro Konto immer als Ganzes – keine Teilauszahlung pro Konto.',
+          'Steuern werden separat zum übrigen Einkommen, zu reduziertem Satz erhoben.',
+        ],
+        guideLink: 'Säule 3a beziehen: Der vollständige Leitfaden',
+        primaryCta: { label: 'Finanzplanung entdecken', action: 'beratung' },
+        secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'b2',
+        label: 'Wie spare ich Steuern beim Bezug?',
+        intro: 'Mit Finanzplanung Advanced – Erstgespräch kostenlos.',
+        bullets: [
+          'Bezug auf mehrere Steuerjahre staffeln – jedes Jahr ein Konto.',
+          'Kantonsunterschiede beachten: Wohnsitzwechsel kann sich lohnen.',
+          'Bezug nicht im selben Jahr wie PK-Kapitalbezug – Progression sonst identisch.',
+          'Für Verheiratete: Bezüge beider Ehepartner werden zusammengerechnet.',
+        ],
+        guideLink: 'Steueroptimierter 3a-Bezug',
+        primaryCta: { label: 'Finanzplanung Advanced entdecken', action: 'beratung' },
+        secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'b3',
+        label: 'Wann kann ich vorzeitig beziehen?',
+        intro: 'Frühpensionierung besprechen – Erstgespräch kostenlos.',
+        bullets: [
+          'Wohneigentum (selbstgenutzt): Kauf, Hypothek-Amortisation, wertvermehrender Umbau.',
+          'Aufnahme einer selbstständigen Erwerbstätigkeit (im ersten Jahr).',
+          'Definitive Auswanderung aus der Schweiz.',
+          'Bezug einer vollen IV-Rente.',
+        ],
+        guideLink: 'Vorzeitiger 3a-Bezug: Gründe und Voraussetzungen',
+        primaryCta: { label: 'Frühpensionierung besprechen', action: 'beratung' },
+        secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
+      },
+      {
+        id: 'b4',
+        label: 'Wie schütze ich mein Guthaben vor dem Bezug?',
+        intro: 'Persönliche Finanzplanung – Erstgespräch kostenlos.',
+        bullets: [
+          'Mit näherrückendem Bezug Aktienquote schrittweise reduzieren (Glide-Path).',
+          'Risiko und Anlagehorizont jährlich überprüfen.',
+          'Letzte 2–3 Jahre vor Bezug: Wechsel auf Sparkonto erwägen.',
+          'Persönliche Finanzplanung gibt Ihnen den optimalen Übergang vor.',
+        ],
+        guideLink: 'Glide-Path: Wie Sie Ihr 3a vor dem Bezug absichern',
+        primaryCta: { label: 'Persönliche Finanzplanung', action: 'beratung' },
+        secondaryCta: { label: 'Erstgespräch vereinbaren', action: 'beratung' },
+      },
+    ],
+  },
+};
 
-    function VorsorgeWizard() {
-      const [screen, setScreen] = useState('intent');
-      const [flowId, setFlowId] = useState(null);
-      const [subIntentId, setSubIntentId] = useState(null);
-      const [modal, setModal] = useState(null);
+// ============================================================================
+// State
+// ============================================================================
+const state = {
+  screen: 'v1',
+  flowId: null,
+  subIntentId: null,
+};
 
-      const flow = flowId ? FLOWS[flowId] : null;
-      const subIntent = flow && subIntentId ? flow.subIntents.find(s => s.id === subIntentId) : null;
+// ============================================================================
+// DOM-Refs
+// ============================================================================
+const els = {
+  shell: document.querySelector('.shell'),
+  backBtn: document.getElementById('backBtn'),
+  v1: document.getElementById('v1'),
+  v2: document.getElementById('v2'),
+  v3: document.getElementById('v3'),
+  intentList: document.getElementById('intentList'),
+  v2breadcrumb: document.getElementById('v2breadcrumb'),
+  personaCard: document.getElementById('personaCard'),
+  v2title: document.getElementById('v2title'),
+  v2desc: document.getElementById('v2desc'),
+  qlist: document.getElementById('qlist'),
+  v3breadcrumb: document.getElementById('v3breadcrumb'),
+  v3title: document.getElementById('v3title'),
+  v3intro: document.getElementById('v3intro'),
+  v3bullets: document.getElementById('v3bullets'),
+  v3guide: document.getElementById('v3guide'),
+  v3guideLabel: document.getElementById('v3guideLabel'),
+  ctaPrimary: document.getElementById('ctaPrimary'),
+  ctaSecondary: document.getElementById('ctaSecondary'),
+  modalBackdrop: document.getElementById('modalBackdrop'),
+  modal: document.getElementById('modal'),
+  modalTitle: document.getElementById('modalTitle'),
+  modalBody: document.getElementById('modalBody'),
+  modalClose: document.getElementById('modalClose'),
+  dbgScreen: document.getElementById('dbgScreen'),
+  dbgFlow: document.getElementById('dbgFlow'),
+  dbgSub: document.getElementById('dbgSub'),
+  dbgRestart: document.getElementById('dbgRestart'),
+};
 
-      const stepIndex = screen === 'intent' ? 0 : screen === 'subintent' ? 1 : 2;
-      const progress = (stepIndex + 1) / 3;
+// ============================================================================
+// Render: Screen 1 (Intent)
+// ============================================================================
+function renderIntent() {
+  els.intentList.innerHTML = '';
+  Object.values(FLOWS).forEach(flow => {
+    const btn = document.createElement('button');
+    btn.className = 'action-btn';
+    btn.setAttribute('data-flow', flow.id);
+    btn.innerHTML = `
+      <div class="action-btn-icon">${ICONS[flow.icon]}</div>
+      <div class="action-btn-text">
+        <div class="action-btn-title">${flow.label}</div>
+        <div class="action-btn-sub">${flow.sublabel}</div>
+      </div>
+      <div class="action-btn-chevron">${ICONS.chevron}</div>
+    `;
+    btn.addEventListener('click', () => selectFlow(flow.id));
+    els.intentList.appendChild(btn);
+  });
+}
 
-      useEffect(() => {
-        const handler = (e) => {
-          if (e.key === 'Escape' && modal) setModal(null);
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-      }, [modal]);
+// ============================================================================
+// Render: Screen 2 (Sub-Intent)
+// ============================================================================
+function renderSubIntent(flow) {
+  els.v2breadcrumb.textContent = flow.label;
+  els.personaCard.innerHTML = `
+    <div class="persona-icon">${ICONS[flow.icon]}</div>
+    <div class="persona-body">
+      <div class="persona-eyebrow">Über Sie</div>
+      <div class="persona-text">${flow.persona}</div>
+    </div>
+  `;
 
-      const selectFlow = (id) => {
-        trackEvent('intent_selected', { flow: id });
-        setFlowId(id);
-        setScreen('subintent');
-      };
-      const selectSubIntent = (id) => {
-        trackEvent('subintent_selected', { flow: flowId, subIntent: id });
-        setSubIntentId(id);
-        setScreen('answer');
-      };
-      const goBack = () => {
-        if (screen === 'answer') {
-          trackEvent('back_clicked', { from: 'answer' });
-          setSubIntentId(null);
-          setScreen('subintent');
-        } else if (screen === 'subintent') {
-          trackEvent('back_clicked', { from: 'subintent' });
-          setFlowId(null);
-          setScreen('intent');
-        }
-      };
-      const handleClose = () => trackEvent('wizard_close_clicked', { screen });
-      const handleCta = (action, ctaType) => {
-        trackEvent('cta_clicked', { flow: flowId, subIntent: subIntentId, ctaType, action });
-        setModal(action);
-      };
-      const handleRestart = () => {
-        trackEvent('wizard_restarted');
-        setScreen('intent');
-        setFlowId(null);
-        setSubIntentId(null);
-      };
+  els.qlist.innerHTML = '';
+  flow.subIntents.forEach((s, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'question-item';
+    btn.setAttribute('data-sub', s.id);
+    btn.innerHTML = `
+      <div class="q-num">${idx + 1}</div>
+      <div class="q-label">${s.label}</div>
+      <div class="q-arr">${ICONS.chevron}</div>
+    `;
+    btn.addEventListener('click', () => selectSubIntent(s.id));
+    els.qlist.appendChild(btn);
+  });
+}
 
-      return (
-        <div style={{
-          minHeight: '100vh', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 16, backgroundColor: '#d6dcd9', fontFamily: FONT_STACK,
-        }}>
-          <div style={{
-            position: 'relative', width: 375, height: 812, backgroundColor: T.primarySubtle1,
-            borderRadius: 40, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-          }}>
-            <TopBar progress={progress} showBack={screen !== 'intent'} onBack={goBack} onClose={handleClose} />
+// ============================================================================
+// Render: Screen 3 (Antwort)
+// ============================================================================
+function renderAnswer(flow, sub) {
+  els.v3breadcrumb.textContent = `${flow.label}  ›  ${sub.label}`;
+  els.v3title.textContent = sub.label;
+  els.v3intro.textContent = `„${sub.intro}"`;
 
-            <div style={{
-              position: 'absolute', left: 0, top: 114, width: 375, height: 698, overflowY: 'auto',
-            }}>
-              <div key={screen} className="mb-fade-in">
-                {screen === 'intent' && <IntentScreen onSelect={selectFlow} />}
-                {screen === 'subintent' && flow && <SubIntentScreen flow={flow} onSelect={selectSubIntent} />}
-                {screen === 'answer' && flow && subIntent && <AnswerScreen flow={flow} subIntent={subIntent} onCta={handleCta} />}
-              </div>
-            </div>
+  els.v3bullets.innerHTML = '';
+  sub.bullets.forEach(b => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="bullet-tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span class="bullet-text">${b}</span>
+    `;
+    els.v3bullets.appendChild(li);
+  });
 
-            {screen === 'intent' && <IntentActionBar />}
+  els.v3guideLabel.textContent = sub.guideLink;
+  els.v3guide.onclick = () => trackEvent('guide_link_clicked', { flow: flow.id, subIntent: sub.id });
 
-            {modal && (
-              <ConversionModal type={modal} flow={flow} subIntent={subIntent} onClose={() => setModal(null)} />
-            )}
-          </div>
+  // Primary CTA
+  const pIcon = sub.primaryCta.icon ? ICONS[sub.primaryCta.icon] : '';
+  els.ctaPrimary.innerHTML = `${pIcon}<span>${sub.primaryCta.label}</span>`;
+  els.ctaPrimary.onclick = () => openModal(sub.primaryCta.action, 'primary');
 
-          <DebugBadge screen={screen} flowId={flowId} subIntentId={subIntentId} onRestart={handleRestart} />
-        </div>
-      );
+  // Secondary CTA
+  els.ctaSecondary.textContent = sub.secondaryCta.label;
+  els.ctaSecondary.onclick = () => openModal(sub.secondaryCta.action, 'secondary');
+}
+
+// ============================================================================
+// Navigation
+// ============================================================================
+function setScreen(target) {
+  // exit-animation
+  document.querySelectorAll('.view').forEach(v => {
+    if (v.classList.contains('active')) {
+      v.classList.remove('active');
+      v.classList.add('exit-left');
+      setTimeout(() => v.classList.remove('exit-left'), 300);
     }
+  });
+  setTimeout(() => {
+    document.getElementById(target).classList.add('active');
+  }, 30);
 
-    function TopBar({ progress, showBack, onBack, onClose }) {
-      return (
-        <div style={{
-          position: 'absolute', left: 0, top: 0, width: 375, backgroundColor: T.primarySubtle1,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10,
-        }}>
-          <div style={{
-            height: 50, width: '100%', display: 'flex', alignItems: 'center',
-            justifyContent: 'space-between', paddingLeft: 24, paddingRight: 16,
-          }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: T.neutral, letterSpacing: '-0.28px' }}>9:41</span>
-            <StatusIcons />
+  state.screen = target;
+  updateBackBtn();
+  updateDebug();
+}
+
+function updateBackBtn() {
+  if (state.screen === 'v1') {
+    els.backBtn.classList.remove('visible');
+  } else {
+    els.backBtn.classList.add('visible');
+  }
+}
+
+function selectFlow(id) {
+  trackEvent('intent_selected', { flow: id });
+  state.flowId = id;
+  renderSubIntent(FLOWS[id]);
+  setScreen('v2');
+}
+
+function selectSubIntent(id) {
+  trackEvent('subintent_selected', { flow: state.flowId, subIntent: id });
+  state.subIntentId = id;
+  const flow = FLOWS[state.flowId];
+  const sub = flow.subIntents.find(s => s.id === id);
+  renderAnswer(flow, sub);
+  setScreen('v3');
+}
+
+function goBack() {
+  if (state.screen === 'v3') {
+    trackEvent('back_clicked', { from: 'v3' });
+    state.subIntentId = null;
+    setScreen('v2');
+  } else if (state.screen === 'v2') {
+    trackEvent('back_clicked', { from: 'v2' });
+    state.flowId = null;
+    setScreen('v1');
+  }
+}
+
+function restart() {
+  trackEvent('wizard_restarted');
+  state.flowId = null;
+  state.subIntentId = null;
+  setScreen('v1');
+}
+
+// ============================================================================
+// Modal
+// ============================================================================
+function openModal(action, ctaType) {
+  trackEvent('cta_clicked', {
+    flow: state.flowId,
+    subIntent: state.subIntentId,
+    ctaType,
+    action,
+  });
+
+  const titles = {
+    beratung: 'Ihr kostenloses Erstgespräch',
+    calc: 'Rechner starten',
+    filiale: 'Filialtermin',
+  };
+  els.modalTitle.textContent = titles[action] || action;
+
+  if (action === 'beratung') els.modalBody.innerHTML = beratungMarkup();
+  else if (action === 'calc') els.modalBody.innerHTML = calcMarkup();
+  else if (action === 'filiale') els.modalBody.innerHTML = filialeMarkup();
+
+  els.modalBackdrop.classList.add('open');
+
+  // Bind events nach dem Einfügen ins DOM
+  if (action === 'beratung') bindBeratung();
+  if (action === 'calc') bindCalc();
+}
+
+function closeModal() {
+  els.modalBackdrop.classList.remove('open');
+}
+
+els.modalClose.addEventListener('click', closeModal);
+els.modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === els.modalBackdrop) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ============================================================================
+// Modal-Inhalte
+// ============================================================================
+function beratungMarkup() {
+  return `
+    <p>Sagen Sie uns kurz, wie wir Sie erreichen. Das Gespräch ist kostenlos und unverbindlich.</p>
+    <div class="field">
+      <label class="field-label" for="bName">Name</label>
+      <input type="text" id="bName" class="field-input" placeholder="Vor- und Nachname">
+    </div>
+    <div class="field">
+      <label class="field-label" for="bContact">E-Mail oder Telefon</label>
+      <input type="text" id="bContact" class="field-input" placeholder="z.B. anna@beispiel.ch">
+    </div>
+    <div class="field">
+      <label class="field-label">Wie möchten Sie beraten werden?</label>
+      <div class="channel-row">
+        <button class="channel-btn active" data-channel="video" type="button">${ICONS.video}<span>Video</span></button>
+        <button class="channel-btn" data-channel="phone" type="button">${ICONS.phone}<span>Telefon</span></button>
+        <button class="channel-btn" data-channel="branch" type="button">${ICONS.pin}<span>Filiale</span></button>
+      </div>
+    </div>
+    <button class="cta cta-primary" id="bSubmit" type="button" style="margin-top:8px;">Termin anfragen</button>
+    <p style="font-size:11px;color:var(--primary-subtle5);margin-top:10px;line-height:1.5;">Mit dem Absenden stimmen Sie der Kontaktaufnahme zu. Datenschutz nach nDSG.</p>
+  `;
+}
+function bindBeratung() {
+  let channel = 'video';
+  els.modalBody.querySelectorAll('.channel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      els.modalBody.querySelectorAll('.channel-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      channel = btn.dataset.channel;
+    });
+  });
+  els.modalBody.querySelector('#bSubmit').addEventListener('click', () => {
+    const name = els.modalBody.querySelector('#bName').value;
+    const contact = els.modalBody.querySelector('#bContact').value;
+    trackEvent('beratung_submitted', { channel, hasContact: !!contact });
+    els.modalBody.innerHTML = `
+      <div class="success-state">
+        <div class="success-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="success-title">Danke${name ? ', ' + escapeHtml(name) : ''}!</div>
+        <div class="success-sub">Wir melden uns innerhalb eines Werktags.</div>
+      </div>
+    `;
+    setTimeout(closeModal, 1800);
+  });
+}
+
+function calcMarkup() {
+  return `
+    <p>Schieben Sie Ihre geplante Jahres-Einzahlung. Schätzung basiert auf einem mittleren Steuersatz – Ihr realer Vorteil hängt von Wohnkanton und Einkommen ab.</p>
+    <div class="calc-card">
+      <div class="calc-label">Jährliche Einzahlung</div>
+      <div class="calc-value" id="calcVal">CHF 5'000</div>
+      <input type="range" min="0" max="7258" step="100" value="5000" class="calc-range" id="calcRange">
+      <div class="calc-bounds"><span>CHF 0</span><span>Maximum CHF 7'258</span></div>
+      <div class="calc-result">
+        <div class="calc-result-label">Geschätzte Steuerersparnis pro Jahr</div>
+        <div class="calc-result-value" id="calcSaving">CHF 1'350</div>
+      </div>
+    </div>
+    <button class="cta cta-primary" id="calcCta" type="button">Beratung dazu vereinbaren</button>
+  `;
+}
+function bindCalc() {
+  const range = els.modalBody.querySelector('#calcRange');
+  const val = els.modalBody.querySelector('#calcVal');
+  const saving = els.modalBody.querySelector('#calcSaving');
+  const fmt = (n) => 'CHF ' + n.toLocaleString('de-CH').replace(/,/g, '\u2019');
+  range.addEventListener('input', () => {
+    const a = parseInt(range.value, 10);
+    val.textContent = fmt(a);
+    saving.textContent = fmt(Math.round(a * 0.27));
+  });
+  els.modalBody.querySelector('#calcCta').addEventListener('click', () => {
+    trackEvent('calc_to_beratung_clicked');
+    openModal('beratung', 'primary');
+  });
+}
+
+function filialeMarkup() {
+  const filialen = [
+    { name: 'Zürich Bahnhofstrasse', slot: 'Nächster Termin: morgen 14:30' },
+    { name: 'Bern Marktgasse', slot: 'Nächster Termin: morgen 11:00' },
+    { name: 'Luzern Pilatusplatz', slot: 'Nächster Termin: übermorgen 09:30' },
+  ];
+  return `
+    <p>Wählen Sie eine Filiale. Im echten Flow folgt eine Karte mit allen 70 Standorten und freien Terminen.</p>
+    <div class="filiale-list">
+      ${filialen.map(f => `
+        <button class="filiale-item" type="button">
+          <div>
+            <div class="filiale-name">${f.name}</div>
+            <div class="filiale-slot">${f.slot}</div>
           </div>
-
-          <div style={{
-            width: '100%', height: 56, paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 32, flex: '1 0 0', paddingRight: 16, minWidth: 0,
-            }}>
-              <button
-                type="button"
-                onClick={onBack}
-                disabled={!showBack}
-                aria-label="Zurück"
-                style={{
-                  padding: 4, borderRadius: 6, width: 32, height: 32, color: T.neutral,
-                  backgroundColor: 'transparent', border: 'none',
-                  cursor: showBack ? 'pointer' : 'default', opacity: showBack ? 1 : 0.3,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 200ms',
-                }}
-              >
-                <ArrowLeft size={20} strokeWidth={2} />
-              </button>
-
-              <div role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Fortschritt"
-                style={{
-                  position: 'relative', height: 4, width: 212, backgroundColor: T.neutralSubtle3,
-                  borderRadius: 8, overflow: 'hidden',
-                }}>
-                <div style={{
-                  position: 'absolute', left: 0, top: 0, height: 4, width: `${progress * 100}%`,
-                  backgroundColor: T.accentMagenta, borderRadius: 8,
-                  transition: 'width 280ms cubic-bezier(0.4, 0, 0.2, 1)',
-                }} />
-              </div>
-            </div>
-
-            <button type="button" onClick={onClose} aria-label="Schliessen"
-              style={{
-                padding: 8, borderRadius: 6, width: 40, height: 40, color: T.neutral,
-                backgroundColor: 'transparent', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-              <X size={20} strokeWidth={2} />
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function StatusIcons() {
-      return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: T.neutral }}>
-          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor">
-            <rect x="0" y="7" width="3" height="4" rx="0.5" />
-            <rect x="4.5" y="5" width="3" height="6" rx="0.5" />
-            <rect x="9" y="2.5" width="3" height="8.5" rx="0.5" />
-            <rect x="13.5" y="0" width="3" height="11" rx="0.5" />
-          </svg>
-          <svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M1 4.2c1.9-1.9 4.4-3 7.2-3s5.3 1.1 7.2 3" strokeLinecap="round" />
-            <path d="M3.5 6.7c1.3-1.3 2.9-2 4.7-2s3.4.7 4.7 2" strokeLinecap="round" />
-            <path d="M6 9.2c.6-.6 1.4-1 2.2-1s1.6.4 2.2 1" strokeLinecap="round" />
-          </svg>
-          <div style={{
-            width: 23, height: 11, border: `1px solid ${T.neutral}`, borderRadius: 2.5, padding: 1.5, position: 'relative',
-          }}>
-            <div style={{ width: '90%', height: '100%', backgroundColor: T.neutral, borderRadius: 1 }} />
-            <div style={{ position: 'absolute', right: -3, top: 3, width: 2, height: 4, backgroundColor: T.neutral, borderRadius: 1 }} />
-          </div>
-        </div>
-      );
-    }
-
-    function IntentScreen({ onSelect }) {
-      return (
-        <div style={{ width: 375, paddingLeft: 16, paddingRight: 16, paddingTop: 24, paddingBottom: 120,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, paddingTop: 8, paddingBottom: 8 }}>
-            <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, letterSpacing: 1, color: T.primary, textTransform: 'uppercase' }}>Vorsorge</p>
-            <h1 style={{ margin: 0, fontFamily: FONT_STACK, fontWeight: 500, fontSize: 21, lineHeight: 1.286, color: '#000', textAlign: 'center', paddingLeft: 8, paddingRight: 8 }}>
-              Was beschäftigt dich gerade beim Thema Vorsorge?
-            </h1>
-            <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 14, lineHeight: 1.429, color: T.primaryBold2, textAlign: 'center', opacity: 0.8, paddingTop: 4 }}>
-              Wähle, was am besten zu dir passt.
-            </p>
-          </div>
-
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {Object.values(FLOWS).map(f => <IntentTile key={f.id} flow={f} onSelect={() => onSelect(f.id)} />)}
-          </div>
-
-          <p style={{ margin: 0, marginTop: 8, fontFamily: FONT_STACK, fontSize: 12, lineHeight: 1.4, color: T.primaryBold2, opacity: 0.7, textAlign: 'center', paddingLeft: 16, paddingRight: 16 }}>
-            Erstgespräche sind kostenlos und unverbindlich. Migros Bank ist FINMA-reguliert.
-          </p>
-        </div>
-      );
-    }
-
-    function IntentTile({ flow, onSelect }) {
-      const FlowIcon = flow.icon;
-      const [hover, setHover] = useState(false);
-      return (
-        <button type="button" onClick={onSelect} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-          style={{
-            width: '100%', backgroundColor: '#fff',
-            border: hover ? `1.5px solid ${T.primary}` : '1.5px solid transparent',
-            borderRadius: 16, padding: 16,
-            display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', textAlign: 'left',
-            transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: hover ? '0 6px 20px rgba(0,0,0,0.10)' : '0 4px 16px rgba(0,0,0,0.06)',
-            transform: hover ? 'translateY(-1px)' : 'translateY(0)',
-          }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12, backgroundColor: T.primarySubtle1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.primary, flexShrink: 0,
-          }}>
-            <FlowIcon size={24} strokeWidth={1.75} />
-          </div>
-          <div style={{ flex: '1 0 0', minWidth: 0 }}>
-            <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 16, fontWeight: 500, lineHeight: 1.375, color: '#000', marginBottom: 2 }}>{flow.label}</p>
-            <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 13, lineHeight: 1.4, color: T.primaryBold2, opacity: 0.7 }}>{flow.sublabel}</p>
-          </div>
-          <ArrowRight size={20} strokeWidth={2} style={{ color: hover ? T.primary : T.primaryBold2, opacity: hover ? 1 : 0.4, flexShrink: 0, transition: 'all 200ms' }} />
+          ${ICONS.chevron}
         </button>
-      );
-    }
+      `).join('')}
+    </div>
+  `;
+}
 
-    function IntentActionBar() {
-      return (
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, width: 375,
-          background: 'linear-gradient(to top, rgba(239,242,241,1) 60%, rgba(239,242,241,0))',
-          paddingTop: 24, paddingBottom: 0,
-        }}>
-          <div aria-hidden="true" style={{ width: '100%', height: 20, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 8 }}>
-            <div style={{ width: 139, height: 5, backgroundColor: T.neutral, borderRadius: 4 }} />
-          </div>
-        </div>
-      );
-    }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-    function SubIntentScreen({ flow, onSelect }) {
-      const FlowIcon = flow.icon;
-      return (
-        <div style={{ width: 375, paddingLeft: 16, paddingRight: 16, paddingTop: 16, paddingBottom: 32 }}>
-          <div style={{
-            backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 16,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.06)', display: 'flex', gap: 12,
-          }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8, backgroundColor: T.primarySubtle1,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.primary, flexShrink: 0,
-            }}>
-              <FlowIcon size={18} strokeWidth={1.75} />
-            </div>
-            <div style={{ flex: '1 0 0' }}>
-              <p style={{ margin: 0, marginBottom: 4, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, letterSpacing: 1, color: T.primary, textTransform: 'uppercase' }}>Über dich</p>
-              <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 13, lineHeight: 1.45, color: T.primaryBold2 }}>{flow.persona}</p>
-            </div>
-          </div>
+// ============================================================================
+// Debug
+// ============================================================================
+function updateDebug() {
+  els.dbgScreen.textContent = state.screen;
+  els.dbgFlow.textContent = state.flowId || '—';
+  els.dbgSub.textContent = state.subIntentId || '—';
+}
 
-          <h2 style={{ margin: 0, marginBottom: 6, fontFamily: FONT_STACK, fontWeight: 500, fontSize: 21, lineHeight: 1.286, color: '#000' }}>
-            Was interessiert dich am meisten?
-          </h2>
-          <p style={{ margin: 0, marginBottom: 20, fontFamily: FONT_STACK, fontSize: 14, lineHeight: 1.429, color: T.primaryBold2, opacity: 0.8 }}>
-            Wir zeigen dir die wichtigsten Antworten und nächsten Schritte.
-          </p>
+// ============================================================================
+// Wiring
+// ============================================================================
+els.backBtn.addEventListener('click', goBack);
+els.dbgRestart.addEventListener('click', restart);
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {flow.subIntents.map((s, idx) => (
-              <SubIntentOption key={s.id} label={s.label} number={idx + 1} onSelect={() => onSelect(s.id)} />
-            ))}
-          </div>
-        </div>
-      );
-    }
+// Init
+renderIntent();
+updateDebug();
+</script>
 
-    function SubIntentOption({ label, number, onSelect }) {
-      const [hover, setHover] = useState(false);
-      return (
-        <button type="button" onClick={onSelect} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-          style={{
-            width: '100%', backgroundColor: '#fff',
-            border: hover ? `1.5px solid ${T.primary}` : '1.5px solid transparent',
-            borderRadius: 12, paddingLeft: 16, paddingRight: 16, paddingTop: 14, paddingBottom: 14,
-            display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', textAlign: 'left',
-            transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          }}>
-          <span style={{
-            width: 28, height: 28, borderRadius: '50%', backgroundColor: T.primarySubtle1, color: T.primary,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: FONT_STACK, fontSize: 13, fontWeight: 500, flexShrink: 0,
-          }}>{number}</span>
-          <span style={{ flex: '1 0 0', fontFamily: FONT_STACK, fontSize: 15, fontWeight: 400, lineHeight: 1.4, color: '#000', minWidth: 0 }}>{label}</span>
-          <ArrowRight size={18} strokeWidth={2} style={{ color: hover ? T.primary : T.primaryBold2, opacity: hover ? 1 : 0.4, flexShrink: 0, transition: 'all 200ms' }} />
-        </button>
-      );
-    }
-
-    function AnswerScreen({ flow, subIntent, onCta }) {
-      const PrimaryIcon = subIntent.primaryCta.icon;
-      return (
-        <div style={{ width: 375, paddingLeft: 16, paddingRight: 16, paddingTop: 16, paddingBottom: 32 }}>
-          <div style={{ marginBottom: 12, paddingLeft: 4 }}>
-            <p style={{ margin: 0, marginBottom: 4, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, letterSpacing: 1, color: T.primary, textTransform: 'uppercase' }}>{flow.label}</p>
-            <h2 style={{ margin: 0, fontFamily: FONT_STACK, fontWeight: 500, fontSize: 21, lineHeight: 1.286, color: '#000' }}>{subIntent.label}</h2>
-          </div>
-
-          <div style={{
-            width: '100%', backgroundColor: '#fff', borderRadius: 16, padding: 20,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.06)', marginBottom: 12,
-          }}>
-            <p style={{ margin: 0, marginBottom: 16, fontFamily: FONT_STACK, fontSize: 15, lineHeight: 1.5, fontStyle: 'italic', color: T.primary }}>
-              „{subIntent.intro}"
-            </p>
-
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {subIntent.bullets.map((b, i) => (
-                <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <span style={{
-                    width: 20, height: 20, borderRadius: '50%', backgroundColor: T.primarySubtle1, color: T.primary,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
-                  }}>
-                    <Check size={12} strokeWidth={3} />
-                  </span>
-                  <span style={{ fontFamily: FONT_STACK, fontSize: 14, lineHeight: 1.45, color: T.primaryBold2 }}>{b}</span>
-                </li>
-              ))}
-            </ul>
-
-            {subIntent.guideLink && (
-              <button type="button" onClick={() => trackEvent('guide_link_clicked', { flow: flow.id, subIntent: subIntent.id })}
-                style={{
-                  marginTop: 16, width: '100%', padding: 12, backgroundColor: T.primarySubtle1,
-                  borderRadius: 8, border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  fontFamily: FONT_STACK, fontSize: 13, fontWeight: 500, color: T.primary, textAlign: 'left', gap: 8,
-                }}>
-                <span>{subIntent.guideLink}</span>
-                <ArrowRight size={16} strokeWidth={2} style={{ flexShrink: 0 }} />
-              </button>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-            <button type="button" onClick={() => onCta(subIntent.primaryCta.action, 'primary')}
-              style={{
-                width: '100%', height: 48, backgroundColor: T.primary, color: T.primaryOn,
-                borderRadius: 6, border: 'none', cursor: 'pointer',
-                fontFamily: FONT_STACK, fontSize: 16, fontWeight: 400, lineHeight: 1.375, letterSpacing: 0.08,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}>
-              {PrimaryIcon && <PrimaryIcon size={18} strokeWidth={2} />}
-              {subIntent.primaryCta.label}
-            </button>
-            <button type="button" onClick={() => onCta(subIntent.secondaryCta.action, 'secondary')}
-              style={{
-                width: '100%', height: 48, backgroundColor: 'transparent', color: T.primary,
-                borderRadius: 6, border: `1.5px solid ${T.primary}`, cursor: 'pointer',
-                fontFamily: FONT_STACK, fontSize: 16, fontWeight: 400, lineHeight: 1.375, letterSpacing: 0.08,
-              }}>
-              {subIntent.secondaryCta.label}
-            </button>
-          </div>
-
-          <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: '8px 16px', paddingTop: 12,
-            borderTop: `1px solid ${T.primarySubtle3}`, fontFamily: FONT_STACK,
-            fontSize: 12, color: T.primaryBold2, opacity: 0.8,
-          }}>
-            <TrustItem label="Erstgespräch kostenlos" />
-            <TrustItem label="Unverbindlich" />
-            <TrustItem label="FINMA-reguliert" />
-          </div>
-        </div>
-      );
-    }
-
-    function TrustItem({ label }) {
-      return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-          <Check size={12} strokeWidth={3} style={{ color: T.primary }} />
-          {label}
-        </span>
-      );
-    }
-
-    function ConversionModal({ type, flow, subIntent, onClose }) {
-      const titles = { beratung: 'Dein kostenloses Erstgespräch', calc: 'Rechner starten', filiale: 'Filialtermin' };
-      return (
-        <div role="dialog" aria-modal="true" onClick={onClose}
-          style={{
-            position: 'absolute', inset: 0, backgroundColor: 'rgba(13, 50, 40, 0.6)',
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 100,
-            animation: 'mb-fadeIn 200ms',
-          }}>
-          <div onClick={(e) => e.stopPropagation()} className="mb-slide-up"
-            style={{
-              width: '100%', maxHeight: '85%', backgroundColor: '#fff',
-              borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: 'hidden',
-              display: 'flex', flexDirection: 'column',
-            }}>
-            <div style={{
-              padding: 20, borderBottom: `1px solid ${T.primarySubtle3}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-            }}>
-              <div>
-                <p style={{ margin: 0, marginBottom: 2, fontFamily: FONT_STACK, fontSize: 11, fontWeight: 500, letterSpacing: 1, color: T.primary, textTransform: 'uppercase' }}>Migros Bank</p>
-                <h3 style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 18, fontWeight: 500, lineHeight: 1.3, color: T.primary }}>{titles[type]}</h3>
-              </div>
-              <button type="button" onClick={onClose} aria-label="Schliessen"
-                style={{ padding: 6, borderRadius: 6, backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: T.neutral, flexShrink: 0 }}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>
-              {type === 'beratung' && <BeratungForm onClose={onClose} />}
-              {type === 'calc' && <CalcMock onClose={onClose} />}
-              {type === 'filiale' && <FilialeMock onClose={onClose} />}
-            </div>
-
-            <div style={{
-              padding: '10px 20px', backgroundColor: T.primarySubtle1, borderTop: `1px solid ${T.primarySubtle3}`,
-              display: 'flex', alignItems: 'center', gap: 8, fontFamily: FONT_STACK, fontSize: 11, color: T.primaryBold2, opacity: 0.7,
-            }}>
-              <Info size={12} />
-              Klickdummy – keine echten Daten werden übermittelt.
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function BeratungForm({ onClose }) {
-      const [submitted, setSubmitted] = useState(false);
-      const [name, setName] = useState('');
-      const [contact, setContact] = useState('');
-      const [channel, setChannel] = useState('video');
-
-      const handleSubmit = () => {
-        trackEvent('beratung_submitted', { channel, hasContact: !!contact });
-        setSubmitted(true);
-        setTimeout(onClose, 1800);
-      };
-
-      if (submitted) {
-        return (
-          <div style={{ paddingTop: 24, paddingBottom: 24, textAlign: 'center' }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: '50%', backgroundColor: T.primarySubtle1, color: T.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
-            }}>
-              <Check size={28} strokeWidth={3} />
-            </div>
-            <p style={{ margin: 0, marginBottom: 4, fontFamily: FONT_STACK, fontSize: 16, fontWeight: 500, color: T.primary }}>Danke{name ? `, ${name}` : ''}!</p>
-            <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 14, color: T.primaryBold2 }}>Wir melden uns innerhalb eines Werktags.</p>
-          </div>
-        );
-      }
-
-      return (
-        <div>
-          <p style={{ margin: 0, marginBottom: 16, fontFamily: FONT_STACK, fontSize: 14, lineHeight: 1.45, color: T.primaryBold2 }}>
-            Sag uns kurz, wie wir dich erreichen. Das Gespräch ist kostenlos und unverbindlich.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-            <Field label="Name" value={name} onChange={setName} placeholder="Vor- und Nachname" />
-            <Field label="E-Mail oder Telefon" value={contact} onChange={setContact} placeholder="z.B. anna@beispiel.ch" />
-
-            <div>
-              <label style={{ display: 'block', marginBottom: 6, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, color: T.primaryBold2 }}>
-                Wie möchtest du beraten werden?
-              </label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {[{ id: 'video', label: 'Video', icon: Video }, { id: 'phone', label: 'Telefon', icon: Phone }, { id: 'branch', label: 'Filiale', icon: MapPin }].map(c => {
-                  const ChIcon = c.icon;
-                  return (
-                    <button key={c.id} type="button" onClick={() => setChannel(c.id)}
-                      style={{
-                        flex: 1, padding: '10px 8px',
-                        backgroundColor: channel === c.id ? T.primarySubtle2 : T.primarySubtle1,
-                        border: channel === c.id ? `1.5px solid ${T.primary}` : '1.5px solid transparent',
-                        borderRadius: 8, cursor: 'pointer', fontFamily: FONT_STACK, fontSize: 13, color: T.primary,
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, transition: 'all 150ms',
-                      }}>
-                      <ChIcon size={18} strokeWidth={1.75} />
-                      {c.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <button type="button" onClick={handleSubmit}
-            style={{
-              width: '100%', height: 48, backgroundColor: T.primary, color: T.primaryOn,
-              borderRadius: 6, border: 'none', cursor: 'pointer',
-              fontFamily: FONT_STACK, fontSize: 16, fontWeight: 400, letterSpacing: 0.08,
-            }}>
-            Termin anfragen
-          </button>
-
-          <p style={{ margin: 0, marginTop: 10, fontFamily: FONT_STACK, fontSize: 11, lineHeight: 1.5, color: T.primaryBold2, opacity: 0.7 }}>
-            Mit dem Absenden stimmst du der Kontaktaufnahme zu. Datenschutz nach nDSG.
-          </p>
-        </div>
-      );
-    }
-
-    function Field({ label, value, onChange, placeholder }) {
-      return (
-        <div>
-          <label style={{ display: 'block', marginBottom: 6, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, color: T.primaryBold2 }}>{label}</label>
-          <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-            style={{
-              width: '100%', padding: '12px 14px', backgroundColor: T.primarySubtle1,
-              border: '1.5px solid transparent', borderRadius: 8,
-              fontFamily: FONT_STACK, fontSize: 14, color: T.primaryBold2, outline: 'none',
-            }} />
-        </div>
-      );
-    }
-
-    function CalcMock({ onClose }) {
-      const [amount, setAmount] = useState(5000);
-      const saving = Math.round(amount * 0.27);
-      return (
-        <div>
-          <p style={{ margin: 0, marginBottom: 16, fontFamily: FONT_STACK, fontSize: 14, lineHeight: 1.45, color: T.primaryBold2 }}>
-            Schiebe deine geplante Jahres-Einzahlung. Schätzung basiert auf einem mittleren Steuersatz – dein realer Vorteil hängt von Wohnkanton und Einkommen ab.
-          </p>
-
-          <div style={{ backgroundColor: T.primarySubtle1, borderRadius: 16, padding: 20, marginBottom: 16 }}>
-            <p style={{ margin: 0, marginBottom: 4, fontFamily: FONT_STACK, fontSize: 12, fontWeight: 500, color: T.primaryBold2 }}>Jährliche Einzahlung</p>
-            <p style={{ margin: 0, marginBottom: 12, fontFamily: FONT_STACK, fontSize: 24, fontWeight: 500, color: T.primary }}>
-              CHF {amount.toLocaleString('de-CH')}
-            </p>
-            <input type="range" min={0} max={7258} step={100} value={amount}
-              onChange={(e) => setAmount(parseInt(e.target.value, 10))}
-              style={{ width: '100%' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: FONT_STACK, fontSize: 11, color: T.primaryBold2, opacity: 0.7, marginTop: 4 }}>
-              <span>CHF 0</span>
-              <span>Maximum CHF 7'258</span>
-            </div>
-
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.primarySubtle3}` }}>
-              <p style={{ margin: 0, marginBottom: 4, fontFamily: FONT_STACK, fontSize: 12, color: T.primaryBold2 }}>Geschätzte Steuerersparnis pro Jahr</p>
-              <p style={{ margin: 0, fontFamily: FONT_STACK, fontSize: 28, fontWeight: 500, color: T.primary }}>
-                CHF {saving.toLocaleString('de-CH')}
-              </p>
-            </div>
-          </div>
-
-          <button type="button" onClick={onClose}
-            style={{
-              width: '100%', height: 48, backgroundColor: T.primary, color: T.primaryOn,
-              borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: FONT_STACK, fontSize: 16,
-            }}>
-            Beratung dazu vereinbaren
-          </button>
-        </div>
-      );
-    }
-
-    function FilialeMock({ onClose }) {
-      return (
-        <div>
-          <p style={{ margin: 0, marginBottom: 16, fontFamily: FONT_STACK, fontSize: 14, color: T.primaryBold2 }}>
-            Wähle eine Filiale. Im echten Flow folgt eine Karte mit allen 70 Standorten und freien Terminen.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {['Zürich Bahnhofstrasse', 'Bern Marktgasse', 'Luzern Pilatusplatz'].map(f => (
-              <button key={f} type="button"
-                style={{
-                  width: '100%', padding: 14, backgroundColor: T.primarySubtle1,
-                  border: '1.5px solid transparent', borderRadius: 8, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  fontFamily: FONT_STACK, textAlign: 'left',
-                }}>
-                <span>
-                  <span style={{ display: 'block', fontSize: 14, fontWeight: 500, color: T.primaryBold2 }}>{f}</span>
-                  <span style={{ display: 'block', fontSize: 12, color: T.primaryBold2, opacity: 0.7, marginTop: 2 }}>Nächster Termin: morgen 14:30</span>
-                </span>
-                <ArrowRight size={16} style={{ color: T.primary }} />
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    function DebugBadge({ screen, flowId, subIntentId, onRestart }) {
-      return (
-        <div style={{
-          position: 'fixed', bottom: 16, right: 16, backgroundColor: 'rgba(20,75,60,0.95)', color: '#fff',
-          padding: '12px 14px', borderRadius: 12, fontFamily: 'ui-monospace, monospace', fontSize: 11,
-          lineHeight: 1.5, boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 50, maxWidth: 240,
-        }}>
-          <div style={{ opacity: 0.7, marginBottom: 4 }}>UX-DEBUG</div>
-          <div>Screen: <strong>{screen}</strong></div>
-          <div>Flow: {flowId || '—'}</div>
-          <div>Sub-Intent: {subIntentId || '—'}</div>
-          <button type="button" onClick={onRestart}
-            style={{
-              marginTop: 8, width: '100%', padding: '6px 8px',
-              backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff',
-              border: '1px solid rgba(255,255,255,0.25)', borderRadius: 6,
-              fontFamily: 'inherit', fontSize: 11, cursor: 'pointer',
-            }}>
-            Wizard neu starten
-          </button>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<VorsorgeWizard />);
-  </script>
 </body>
 </html>
